@@ -33,6 +33,10 @@ int __attribute__((always_inline)) sys_socket_ret(void *ctx, int retval) {
         return 0;
     }
 
+    if (approve_syscall(syscall, socket_approvers) == DISCARDED) {
+        return 0;
+    }
+
     struct socket_event_t event = {
         .syscall.retval = retval,
         .domain = syscall->socket.domain,
