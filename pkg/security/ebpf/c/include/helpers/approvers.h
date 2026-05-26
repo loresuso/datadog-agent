@@ -605,7 +605,7 @@ enum SYSCALL_STATE __attribute__((always_inline)) bpf_approvers(struct syscall_c
     return flag_approver(filter, syscall->type, cmd);
 }
 
-enum SYSCALL_STATE __attribute__((always_inline)) sysctl_approvers(struct syscall_cache_t *syscall) {
+static enum SYSCALL_STATE __attribute__((always_inline)) sysctl_approvers(struct syscall_cache_t *syscall) {
     u32 key = 0;
     struct u32_flags_filter_t *filter = bpf_map_lookup_elem(&sysctl_action_approvers, &key);
     if (filter == NULL || !filter->is_set) {
@@ -620,7 +620,7 @@ enum SYSCALL_STATE __attribute__((always_inline)) sysctl_approvers(struct syscal
     return DISCARDED;
 }
 
-enum SYSCALL_STATE __attribute__((always_inline)) connect_approvers(struct syscall_cache_t *syscall) {
+static enum SYSCALL_STATE __attribute__((always_inline)) connect_approvers(struct syscall_cache_t *syscall) {
     u32 key = 0;
     struct u64_flags_filter_t *filter = bpf_map_lookup_elem(&connect_addr_family_approvers, &key);
     u64 family = syscall->connect.family;
@@ -683,7 +683,7 @@ static enum SYSCALL_STATE __attribute__((always_inline)) approve_socket_by_proto
     return flag_approver(filter, syscall->type, (u64)syscall->socket.protocol);
 }
 
-enum SYSCALL_STATE __attribute__((always_inline)) socket_approvers(struct syscall_cache_t *syscall) {
+static enum SYSCALL_STATE __attribute__((always_inline)) socket_approvers(struct syscall_cache_t *syscall) {
     enum SYSCALL_STATE state = approve_socket_by_type(syscall);
     if (state == DISCARDED) {
         state = approve_socket_by_domain(syscall);
@@ -694,7 +694,7 @@ enum SYSCALL_STATE __attribute__((always_inline)) socket_approvers(struct syscal
     return state;
 }
 
-enum SYSCALL_STATE __attribute__((always_inline)) approve_syscall_with_tgid(u32 tgid, struct syscall_cache_t *syscall, enum SYSCALL_STATE (*check_approvers)(struct syscall_cache_t *syscall)) {
+static enum SYSCALL_STATE __attribute__((always_inline)) approve_syscall_with_tgid(u32 tgid, struct syscall_cache_t *syscall, enum SYSCALL_STATE (*check_approvers)(struct syscall_cache_t *syscall)) {
     if (syscall->policy.mode != DENY) {
         monitor_event_approved(syscall->type, POLICY_APPROVER_TYPE);
         return syscall->state = APPROVED;
@@ -732,7 +732,7 @@ enum SYSCALL_STATE __attribute__((always_inline)) approve_syscall_with_tgid(u32 
     return syscall->state;
 }
 
-enum SYSCALL_STATE __attribute__((always_inline)) approve_syscall(struct syscall_cache_t *syscall, enum SYSCALL_STATE (*check_approvers)(struct syscall_cache_t *syscall)) {
+static enum SYSCALL_STATE __attribute__((always_inline)) approve_syscall(struct syscall_cache_t *syscall, enum SYSCALL_STATE (*check_approvers)(struct syscall_cache_t *syscall)) {
     u32 tgid = bpf_get_current_pid_tgid() >> 32;
     return approve_syscall_with_tgid(tgid, syscall, check_approvers);
 }
